@@ -228,8 +228,20 @@ spot_map <- function(data,
 
   # 13. Save or return
   if (!is.null(output)) {
-    htmlwidgets::saveWidget(m, file = normalizePath(output, mustWork = FALSE),
-                            selfcontained = TRUE)
+    out_path <- normalizePath(output, mustWork = FALSE)
+    # Try selfcontained first; fall back to non-selfcontained if pandoc missing
+    saved <- tryCatch({
+      htmlwidgets::saveWidget(m, file = out_path, selfcontained = TRUE)
+      TRUE
+    }, error = function(e) {
+      if (grepl("pandoc", conditionMessage(e), ignore.case = TRUE)) {
+        # Save with external dependencies in a lib folder
+        htmlwidgets::saveWidget(m, file = out_path, selfcontained = FALSE)
+        TRUE
+      } else {
+        stop(e)
+      }
+    })
     message("Map saved to: ", output)
     invisible(m)
   } else {
