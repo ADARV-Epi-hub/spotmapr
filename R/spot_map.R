@@ -103,7 +103,7 @@ spot_map <- function(data,
     width = "100%", height = "100%",
     options = leaflet::leafletOptions(zoomSnap = 0.1, zoomDelta = 0.1)
   ) |>
-    leaflet::addTiles() |>
+    leaflet::addProviderTiles("CartoDB.Positron") |>
     leaflet::setView(lng = center_lon, lat = center_lat, zoom = 5)
 
   # 8. Boundary layers (using addPolygons with sf objects directly)
@@ -153,6 +153,42 @@ spot_map <- function(data,
     "<b>District:</b> ", points_cases[[district_name_col]]
   )
 
+  # Custom cluster icon function matching Python version
+  # Reads from window.clusterBaseColor so live color changes work via refreshClusters
+  total_cases <- nrow(points_cases)
+  cluster_icon_js <- sprintf("
+    function(cluster) {
+      var count = cluster.getChildCount();
+      var total = %d;
+      var frac = count / total;
+      if (!isFinite(frac) || frac < 0) frac = 0;
+      if (frac > 1) frac = 1;
+      var baseHex = (typeof window !== 'undefined' && window.clusterBaseColor) ? window.clusterBaseColor : '%s';
+      function hexToRgb(hex) {
+        if (!hex) return {r:255,g:0,b:0};
+        var c = hex.replace('#','');
+        if (c.length===3) c=c[0]+c[0]+c[1]+c[1]+c[2]+c[2];
+        var num = parseInt(c,16);
+        return {r:(num>>16)&255, g:(num>>8)&255, b:num&255};
+      }
+      function mixWithWhite(rgb,t) {
+        t = Math.max(0,Math.min(1,t));
+        return {r:Math.round(255*(1-t)+rgb.r*t), g:Math.round(255*(1-t)+rgb.g*t), b:Math.round(255*(1-t)+rgb.b*t)};
+      }
+      var baseRgb = hexToRgb(baseHex);
+      var t = 0.4 + 0.6*Math.sqrt(frac);
+      if (!isFinite(t)||t<0.4) t=0.4; if (t>1) t=1;
+      var mixed = mixWithWhite(baseRgb, t);
+      var color = 'rgba('+mixed.r+','+mixed.g+','+mixed.b+',0.95)';
+      var size = 30 + Math.min(25, Math.sqrt(count)*3);
+      return new L.DivIcon({
+        html: '<div style=\"background:'+color+';width:'+size+'px;height:'+size+'px;border-radius:50%%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 6px rgba(0,0,0,0.4);font-weight:bold;color:#333;\">'+count+'</div>',
+        className: 'cluster-icon',
+        iconSize: new L.Point(size, size)
+      });
+    }
+  ", total_cases, cluster_color)
+
   m <- m |>
     leaflet::addMarkers(
       lng = case_coords[, 1], lat = case_coords[, 2],
@@ -163,17 +199,27 @@ spot_map <- function(data,
         spiderfyOnMaxZoom = TRUE,
         showCoverageOnHover = FALSE,
         maxClusterRadius = 60,
-        singleMarkerMode = TRUE
+        singleMarkerMode = TRUE,
+        iconCreateFunction = htmlwidgets::JS(cluster_icon_js)
       )
     )
 
+  # Use addMarkers (L.Marker) for pins so JS can call setIcon() to update
+  # color + size live, exactly like the Python version. We pass a 1px
+  # transparent placeholder icon; the real pin-shaped DivIcon is applied
+  # in JS at init via redrawPins().
+  blank_icon <- leaflet::makeIcon(
+    iconUrl = "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==",
+    iconWidth = 1, iconHeight = 1,
+    iconAnchorX = 0, iconAnchorY = 0
+  )
+
   # Case pins
   m <- m |>
-    leaflet::addCircleMarkers(
+    leaflet::addMarkers(
       lng = case_coords[, 1], lat = case_coords[, 2],
       popup = case_popups,
-      radius = 5, color = case_color, fillColor = case_color,
-      fillOpacity = 0.8, weight = 1,
+      icon = blank_icon,
       group = "Spot Map - Cases"
     )
 
@@ -186,17 +232,17 @@ spot_map <- function(data,
       "<b>District:</b> ", points_controls[[district_name_col]]
     )
     m <- m |>
-      leaflet::addCircleMarkers(
+      leaflet::addMarkers(
         lng = ctrl_coords[, 1], lat = ctrl_coords[, 2],
         popup = ctrl_popups,
-        radius = 5, color = control_color, fillColor = control_color,
-        fillOpacity = 0.8, weight = 1,
+        icon = blank_icon,
         group = "Spot Map - Controls"
       )
   } else {
     # Add empty group so JS doesn't break
-    m <- m |> leaflet::addCircleMarkers(
+    m <- m |> leaflet::addMarkers(
       lng = numeric(0), lat = numeric(0),
+      icon = blank_icon,
       group = "Spot Map - Controls"
     )
   }
