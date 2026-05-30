@@ -14,9 +14,9 @@ detect_lat_lon(df, lat_col = NULL, lon_col = NULL)
 \item{lon_col}{Optional explicit longitude column name.}
 }
 \value{
-A named list with elements \code{lat} and \code{lon} (column names). If a
-combined column was split, the data.frame gains \verb{_auto_lat} and \verb{_auto_lon}
-columns as a side-effect (modified in the parent environment).
+A named list with elements \code{lat} (column name), \code{lon} (column
+name), and \code{df} (the data.frame; may have new \verb{_auto_lat}/\verb{_auto_lon}
+columns appended if a combined column was split).
 }
 \description{
 Detect latitude and longitude columns

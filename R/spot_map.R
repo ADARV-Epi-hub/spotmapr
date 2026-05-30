@@ -37,6 +37,13 @@ spot_map <- function(data,
                      control_color = "#7676E7",
                      output = NULL) {
 
+  # If called with no arguments at all, drop into the interactive wizard
+  # (Python equivalent: `python -m spotmap` runs the prompt-based flow.)
+  if (missing(data)) {
+    out <- if (is.null(output)) "spotmap.html" else output
+    return(invisible(run_interactive(output_path = out)))
+  }
+
   # 1. Load data
   if (is.character(data)) {
     df <- load_data(data)
@@ -50,6 +57,7 @@ spot_map <- function(data,
   ll <- detect_lat_lon(df, lat_col, lon_col)
   lat_col <- ll$lat
   lon_col <- ll$lon
+  df <- ll$df  # may have new _auto_lat / _auto_lon columns
 
   oc <- detect_outcome(df, outcome_col, case_value)
   outcome_col <- oc$outcome_col
@@ -95,16 +103,12 @@ spot_map <- function(data,
   districts_sub <- crop_geodataframe(affected_districts, bounds, margin_deg)
 
   # 7. Build leaflet map
-  coords_cases <- sf::st_coordinates(points_cases)
-  center_lat <- mean(coords_cases[, 2], na.rm = TRUE)
-  center_lon <- mean(coords_cases[, 1], na.rm = TRUE)
-
+  # (setView is omitted because fitBounds below overrides it anyway)
   m <- leaflet::leaflet(
     width = "100%", height = "100%",
     options = leaflet::leafletOptions(zoomSnap = 0.1, zoomDelta = 0.1)
   ) |>
-    leaflet::addProviderTiles("CartoDB.Positron") |>
-    leaflet::setView(lng = center_lon, lat = center_lat, zoom = 5)
+    leaflet::addProviderTiles("CartoDB.Positron")
 
   # 8. Boundary layers (using addPolygons with sf objects directly)
   if (!is.null(india_sub) && nrow(india_sub) > 0) {
@@ -130,7 +134,7 @@ spot_map <- function(data,
   }
 
   # 9. Auto-zoom using data bounds
-  tb <- as.numeric(bounds)  # xmin, ymin, xmax, ymax — strip names
+  tb <- as.numeric(bounds)  # xmin, ymin, xmax, ymax -- strip names
   if (length(tb) == 4 && all(is.finite(tb)) && tb[3] > tb[1] && tb[4] > tb[2]) {
     buf_x <- (tb[3] - tb[1]) * 0.1
     buf_y <- (tb[4] - tb[2]) * 0.1
@@ -145,7 +149,7 @@ spot_map <- function(data,
     )
   }
 
-  # 10. Marker layers — dot density (clustered)
+  # 10. Marker layers -- dot density (clustered)
   case_coords <- sf::st_coordinates(points_cases)
   case_popups <- paste0(
     "<b>Type:</b> Case<br>",
@@ -294,14 +298,4 @@ spot_map <- function(data,
   } else {
     m
   }
-}
-
-
-#' Convert an sf object to GeoJSON string
-#' @keywords internal
-sf_to_geojson <- function(sf_obj) {
-  if (is.null(sf_obj) || nrow(sf_obj) == 0) return("{}")
-  tmp <- tempfile(fileext = ".geojson")
-  sf::st_write(sf_obj, tmp, driver = "GeoJSON", quiet = TRUE)
-  paste(readLines(tmp, warn = FALSE), collapse = "\n")
 }

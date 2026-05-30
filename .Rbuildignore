@@ -2,3 +2,6 @@
 ^\.Rproj\.user$
 ^LICENSE\.md$
 ^\.github$
+^.*\.tar\.gz$
+^\.git$
+^\.gitignore$

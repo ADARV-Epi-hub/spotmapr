@@ -331,7 +331,7 @@ function(el, x) {
       r.addEventListener("change", applyLayerLogic);
     });
 
-    // Cluster colour picker — live update
+    // Cluster colour picker -- live update
     var clusterP = document.getElementById("clusterCustomColor");
     if (clusterP) {
       clusterP.addEventListener("input", function(e) {
@@ -414,7 +414,14 @@ function(el, x) {
     applyLayerLogic();
     updateLegend();
   } catch(err) {
-    console.log("SpotMap sidebar error:", err);
+    console.error("SpotMap sidebar error:", err);
+    try {
+      var banner = document.createElement("div");
+      banner.style.cssText = "position:fixed;top:10px;left:50%;transform:translateX(-50%);background:#fee;color:#900;padding:8px 14px;border:1px solid #c66;border-radius:6px;z-index:99999;font-family:sans-serif;font-size:12px;box-shadow:0 2px 8px rgba(0,0,0,0.15);";
+      banner.textContent = "SpotMap UI error: " + (err && err.message ? err.message : err) + " (see browser console for details)";
+      document.body.appendChild(banner);
+      setTimeout(function() { banner.style.display = "none"; }, 8000);
+    } catch(_) {}
   }
 }
 ')

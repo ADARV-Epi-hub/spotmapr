@@ -36,13 +36,13 @@ load_data <- function(path) {
 
 .is_float_col <- function(df, col, n = 5L) {
   vals <- head(trimws(as.character(stats::na.omit(df[[col]]))), n)
-  length(vals) > 0 && all(grepl("^-?\\d+(\\.\\d+)?$", vals))
+  length(vals) > 0 && all(grepl("^-?\\d+(\\.\\d+)?$", vals, perl = TRUE))
 }
 
 .is_pair_col <- function(df, col, n = 5L) {
   vals <- head(trimws(as.character(stats::na.omit(df[[col]]))), n)
   pat <- "^[\\[\\(]?\\s*-?\\d+(\\.\\d+)?\\s*,\\s*-?\\d+(\\.\\d+)?\\s*[\\]\\)]?$"
-  length(vals) > 0 && all(grepl(pat, vals))
+  length(vals) > 0 && all(grepl(pat, vals, perl = TRUE))
 }
 
 
@@ -51,20 +51,19 @@ load_data <- function(path) {
 #' @param df A data.frame.
 #' @param lat_col Optional explicit latitude column name.
 #' @param lon_col Optional explicit longitude column name.
-#' @return A named list with elements `lat` and `lon` (column names). If a
-#'   combined column was split, the data.frame gains `_auto_lat` and `_auto_lon`
-#'   columns as a side-effect (modified in the parent environment).
+#' @return A named list with elements `lat` (column name), `lon` (column
+#'   name), and `df` (the data.frame; may have new `_auto_lat`/`_auto_lon`
+#'   columns appended if a combined column was split).
 #' @export
 detect_lat_lon <- function(df, lat_col = NULL, lon_col = NULL) {
   cols <- names(df)
-
 
   if (!is.null(lat_col) && !is.null(lon_col)) {
     missing <- setdiff(c(lat_col, lon_col), cols)
     if (length(missing) > 0)
       stop("Columns not found: ", paste(missing, collapse = ", "),
            call. = FALSE)
-    return(list(lat = lat_col, lon = lon_col))
+    return(list(lat = lat_col, lon = lon_col, df = df))
   }
 
   # Combined "lat,lon" column?
@@ -86,13 +85,9 @@ detect_lat_lon <- function(df, lat_col = NULL, lon_col = NULL) {
         lat_s <- ifelse(abs(v1) > abs(v2), v2, v1)
         lon_s <- ifelse(abs(v1) > abs(v2), v1, v2)
       }
-      # Assign into the caller's copy of df
-      assign_env <- parent.frame()
-      if (exists("df", envir = assign_env, inherits = FALSE)) {
-        assign_env$df[["_auto_lat"]] <- lat_s
-        assign_env$df[["_auto_lon"]] <- lon_s
-      }
-      return(list(lat = "_auto_lat", lon = "_auto_lon"))
+      df[["_auto_lat"]] <- lat_s
+      df[["_auto_lon"]] <- lon_s
+      return(list(lat = "_auto_lat", lon = "_auto_lon", df = df))
     }
   }
 
@@ -110,10 +105,10 @@ detect_lat_lon <- function(df, lat_col = NULL, lon_col = NULL) {
   }
 
   if (!is.null(found_lat) && !is.null(found_lon))
-    return(list(lat = found_lat, lon = found_lon))
+    return(list(lat = found_lat, lon = found_lon, df = df))
 
   if (length(numeric_cols) == 2)
-    return(list(lat = numeric_cols[1], lon = numeric_cols[2]))
+    return(list(lat = numeric_cols[1], lon = numeric_cols[2], df = df))
 
   stop("Could not auto-detect lat/lon columns. Available columns: ",
        paste(cols, collapse = ", "),
@@ -157,6 +152,16 @@ detect_outcome <- function(df, outcome_col = NULL, case_value = NULL) {
   if (is.null(case_value)) {
     hit <- values[values %in% .CASE_VALUES]
     case_value <- if (length(hit) > 0) hit[1] else if (length(values) > 0) values[1] else NULL
+  } else {
+    # Validate user-supplied case_value actually exists in the column
+    case_value_norm <- tolower(trimws(as.character(case_value)))
+    if (!(case_value_norm %in% values)) {
+      stop("case_value '", case_value, "' not found in column '",
+           outcome_col, "'. Available values: ",
+           paste(values, collapse = ", "),
+           ". Note: matching is case-insensitive.",
+           call. = FALSE)
+    }
   }
 
   if (is.null(case_value))
