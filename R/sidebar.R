@@ -96,9 +96,27 @@ input[type="range"] { width: 100%; accent-color: #667eea; }
     margin-right: 9px; border: 1px solid rgba(0,0,0,0.15);
 }
 @media print {
+    /* Force browser to actually print background colours so cluster
+       icons, legend swatches, and pins keep their colour in the PDF. */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+    }
+    html, body { background: #fff !important; }
     #map-sidebar, #sidebar-toggle-btn { display: none !important; }
-    #map-legend { display: block !important; position: absolute; top: 10px; left: 10px; }
-    .leaflet-control-zoom { display: none !important; }
+    #map-legend {
+        display: block !important;
+        position: absolute; top: 10px; left: 10px;
+        background: #fff !important;
+        border: 1px solid #ccc;
+    }
+    .legend-icon { border: 1px solid #333 !important; }
+    .leaflet-control-zoom, .leaflet-control-attribution { display: none !important; }
+    /* Cluster icon divs */
+    .cluster-icon > div, .marker-cluster div {
+        box-shadow: none !important;
+    }
 }
 </style>'
 
