@@ -1,5 +1,21 @@
 # spotmapr 0.1.11
 
+## Robustness fixes (pre-CRAN edge-case audit)
+- Rows with missing or out-of-range latitude / longitude no longer
+  crash the build; they are dropped with a one-line warning telling the
+  user how many rows were skipped.
+- Empty input data frames now produce a clear "Input data is empty"
+  error instead of a confusing "could not auto-detect lat/lon" message.
+- A warning is emitted when most points fall outside India's bounding
+  box (lat 6-38, lon 67-98), which usually means the lat / lon columns
+  were swapped.
+- Scientific-notation coordinates (e.g. `1.1e1`) are now recognised by
+  the column-type detector.
+- Internal helper columns renamed from leading-underscore names
+  (`_outcome_norm`, `_auto_lat`, `_auto_lon`) to namespaced
+  `.spotmapr_*` names, so users who happen to have a column literally
+  called `_outcome_norm` no longer have their data silently overwritten.
+
 ## New features
 - Interactive wizard (`run_interactive()` and `spot_map()` with no args)
   now prompts for the output HTML path (Step 6), matching the Python

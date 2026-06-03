@@ -53,18 +53,52 @@ spot_map <- function(data,
     stop("data must be a file path (character) or a data.frame.", call. = FALSE)
   }
 
+  if (nrow(df) == 0) {
+    stop("Input data is empty (0 rows). Cannot build a map.", call. = FALSE)
+  }
+
   # 2. Detect columns
   ll <- detect_lat_lon(df, lat_col, lon_col)
   lat_col <- ll$lat
   lon_col <- ll$lon
   df <- ll$df  # may have new _auto_lat / _auto_lon columns
 
+  # 2a. Coerce coordinates to numeric and drop rows with missing / invalid coords
+  lat_num <- suppressWarnings(as.numeric(as.character(df[[lat_col]])))
+  lon_num <- suppressWarnings(as.numeric(as.character(df[[lon_col]])))
+  bad_coord <- is.na(lat_num) | is.na(lon_num) |
+    lat_num < -90 | lat_num > 90 |
+    lon_num < -180 | lon_num > 180
+  n_bad <- sum(bad_coord)
+  if (n_bad > 0) {
+    warning(n_bad, " row(s) with missing or out-of-range coordinates were ",
+            "dropped before mapping.", call. = FALSE)
+    df <- df[!bad_coord, , drop = FALSE]
+    if (nrow(df) == 0) {
+      stop("All rows had missing or invalid coordinates. Nothing to map.",
+           call. = FALSE)
+    }
+  }
+  df[[lat_col]] <- lat_num[!bad_coord]
+  df[[lon_col]] <- lon_num[!bad_coord]
+
+  # 2b. India-bounds sanity check (warn if most points are clearly elsewhere)
+  in_india <- lat_num[!bad_coord] >= 6  & lat_num[!bad_coord] <= 38 &
+              lon_num[!bad_coord] >= 67 & lon_num[!bad_coord] <= 98
+  if (sum(in_india) / nrow(df) < 0.5) {
+    warning("Most points (",
+            round(100 * (1 - sum(in_india) / nrow(df))),
+            "%) fall outside India's bounding box (lat 6-38, lon 67-98). ",
+            "Are your lat/lon columns swapped?",
+            call. = FALSE)
+  }
+
   oc <- detect_outcome(df, outcome_col, case_value)
   outcome_col <- oc$outcome_col
   case_value <- oc$case_value
 
-  df[["_outcome_norm"]] <- tolower(trimws(as.character(df[[outcome_col]])))
-  df[["_outcome_norm"]][df[["_outcome_norm"]] %in% c("na", "nan")] <- NA
+  df[[".spotmapr_outcome_norm"]] <- tolower(trimws(as.character(df[[outcome_col]])))
+  df[[".spotmapr_outcome_norm"]][df[[".spotmapr_outcome_norm"]] %in% c("na", "nan")] <- NA
 
   # 3. Load boundaries
   bnd <- load_boundaries(state_shp, district_shp)
@@ -78,7 +112,7 @@ spot_map <- function(data,
                                  state_name_col, district_name_col)
 
   # 5. Split cases / controls
-  is_case <- points_joined[["_outcome_norm"]] == case_value
+  is_case <- points_joined[[".spotmapr_outcome_norm"]] == case_value
   is_case[is.na(is_case)] <- FALSE
   points_cases <- points_joined[is_case, ]
   points_controls <- points_joined[!is_case, ]

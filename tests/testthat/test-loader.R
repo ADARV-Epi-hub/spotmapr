@@ -56,10 +56,20 @@ test_that("detect_lat_lon returns df in result list", {
 test_that("detect_lat_lon splits a combined lat,lon column", {
   df <- data.frame(coords = c("28.6, 77.2", "19.0, 72.8"))
   result <- detect_lat_lon(df)
-  expect_equal(result$lat, "_auto_lat")
-  expect_equal(result$lon, "_auto_lon")
-  expect_true("_auto_lat" %in% names(result$df))
-  expect_true("_auto_lon" %in% names(result$df))
-  expect_equal(result$df[["_auto_lat"]], c(28.6, 19.0))
-  expect_equal(result$df[["_auto_lon"]], c(77.2, 72.8))
+  expect_equal(result$lat, ".spotmapr_auto_lat")
+  expect_equal(result$lon, ".spotmapr_auto_lon")
+  expect_true(".spotmapr_auto_lat" %in% names(result$df))
+  expect_true(".spotmapr_auto_lon" %in% names(result$df))
+  expect_equal(result$df[[".spotmapr_auto_lat"]], c(28.6, 19.0))
+  expect_equal(result$df[[".spotmapr_auto_lon"]], c(77.2, 72.8))
+})
+
+test_that("detect_lat_lon accepts scientific-notation coordinates", {
+  df <- data.frame(
+    lat = c("1.1e1", "1.11e1", "1.12e1"),
+    lon = c("7.69e1", "7.70e1", "7.71e1")
+  )
+  result <- detect_lat_lon(df)
+  expect_equal(result$lat, "lat")
+  expect_equal(result$lon, "lon")
 })

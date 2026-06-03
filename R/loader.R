@@ -36,7 +36,9 @@ load_data <- function(path) {
 
 .is_float_col <- function(df, col, n = 5L) {
   vals <- head(trimws(as.character(stats::na.omit(df[[col]]))), n)
-  length(vals) > 0 && all(grepl("^-?\\d+(\\.\\d+)?$", vals, perl = TRUE))
+  # Accept plain decimals AND scientific notation (e.g. 1.1e1, -2.5E-3)
+  length(vals) > 0 &&
+    all(grepl("^-?\\d+(\\.\\d+)?([eE][-+]?\\d+)?$", vals, perl = TRUE))
 }
 
 .is_pair_col <- function(df, col, n = 5L) {
@@ -52,7 +54,7 @@ load_data <- function(path) {
 #' @param lat_col Optional explicit latitude column name.
 #' @param lon_col Optional explicit longitude column name.
 #' @return A named list with elements `lat` (column name), `lon` (column
-#'   name), and `df` (the data.frame; may have new `_auto_lat`/`_auto_lon`
+#'   name), and `df` (the data.frame; may have new `.spotmapr_auto_lat`/`.spotmapr_auto_lon`
 #'   columns appended if a combined column was split).
 #' @export
 detect_lat_lon <- function(df, lat_col = NULL, lon_col = NULL) {
@@ -85,9 +87,9 @@ detect_lat_lon <- function(df, lat_col = NULL, lon_col = NULL) {
         lat_s <- ifelse(abs(v1) > abs(v2), v2, v1)
         lon_s <- ifelse(abs(v1) > abs(v2), v1, v2)
       }
-      df[["_auto_lat"]] <- lat_s
-      df[["_auto_lon"]] <- lon_s
-      return(list(lat = "_auto_lat", lon = "_auto_lon", df = df))
+      df[[".spotmapr_auto_lat"]] <- lat_s
+      df[[".spotmapr_auto_lon"]] <- lon_s
+      return(list(lat = ".spotmapr_auto_lat", lon = ".spotmapr_auto_lon", df = df))
     }
   }
 
