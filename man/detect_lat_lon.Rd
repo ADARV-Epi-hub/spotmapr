@@ -15,7 +15,7 @@ detect_lat_lon(df, lat_col = NULL, lon_col = NULL)
 }
 \value{
 A named list with elements \code{lat} (column name), \code{lon} (column
-name), and \code{df} (the data.frame; may have new \verb{_auto_lat}/\verb{_auto_lon}
+name), and \code{df} (the data.frame; may have new \code{.spotmapr_auto_lat}/\code{.spotmapr_auto_lon}
 columns appended if a combined column was split).
 }
 \description{

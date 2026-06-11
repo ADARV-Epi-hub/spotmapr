@@ -1,5 +1,13 @@
 # spotmapr 0.1.11
 
+## New features
+- **Cases-only mode** for datasets without a case/control variable
+  (e.g. outbreak surveillance, where every row is a case). Pass
+  `all_cases = TRUE` to `spot_map()` to skip outcome detection and
+  treat every row as a case. The interactive wizard now offers
+  "(No outcome column - treat all rows as cases)" as the first
+  option in Step 4.
+
 ## Robustness fixes (pre-CRAN edge-case audit)
 - Rows with missing or out-of-range latitude / longitude no longer
   crash the build; they are dropped with a one-line warning telling the

@@ -7,6 +7,9 @@
 #' @param lon_col Longitude column name. Auto-detected when NULL.
 #' @param outcome_col Outcome column name. Auto-detected when NULL.
 #' @param case_value Value representing a case. Auto-detected when NULL.
+#' @param all_cases If `TRUE`, skip outcome detection and treat every row
+#'   as a case (no controls on the map). Useful for outbreak surveillance
+#'   or case-only datasets that don't have a control group. Defaults to `FALSE`.
 #' @param count_cutoff District count threshold for zoom level (default 2).
 #' @param margin_deg Padding in degrees around bounding box (default 1.0).
 #' @param cluster_color Hex colour for dot-density clusters.
@@ -30,6 +33,7 @@ spot_map <- function(data,
                      lon_col = NULL,
                      outcome_col = NULL,
                      case_value = NULL,
+                     all_cases = FALSE,
                      count_cutoff = 2L,
                      margin_deg = 1.0,
                      cluster_color = "#E85252",
@@ -93,12 +97,22 @@ spot_map <- function(data,
             call. = FALSE)
   }
 
-  oc <- detect_outcome(df, outcome_col, case_value)
-  outcome_col <- oc$outcome_col
-  case_value <- oc$case_value
+  # Cases-only mode: skip outcome detection, treat every row as a case.
+  # Triggered when the user passes all_cases = TRUE, OR when the user
+  # didn't pass an outcome_col and no plausible one can be auto-detected.
+  if (isTRUE(all_cases)) {
+    outcome_col <- ".spotmapr_outcome_norm"
+    case_value <- "case"
+    df[[".spotmapr_outcome_norm"]] <- "case"
+    message("Cases-only mode: treating all ", nrow(df), " rows as cases.")
+  } else {
+    oc <- detect_outcome(df, outcome_col, case_value)
+    outcome_col <- oc$outcome_col
+    case_value <- oc$case_value
 
-  df[[".spotmapr_outcome_norm"]] <- tolower(trimws(as.character(df[[outcome_col]])))
-  df[[".spotmapr_outcome_norm"]][df[[".spotmapr_outcome_norm"]] %in% c("na", "nan")] <- NA
+    df[[".spotmapr_outcome_norm"]] <- tolower(trimws(as.character(df[[outcome_col]])))
+    df[[".spotmapr_outcome_norm"]][df[[".spotmapr_outcome_norm"]] %in% c("na", "nan")] <- NA
+  }
 
   # 3. Load boundaries
   bnd <- load_boundaries(state_shp, district_shp)

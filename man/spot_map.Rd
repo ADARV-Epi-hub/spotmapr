@@ -12,6 +12,7 @@ spot_map(
   lon_col = NULL,
   outcome_col = NULL,
   case_value = NULL,
+  all_cases = FALSE,
   count_cutoff = 2L,
   margin_deg = 1,
   cluster_color = "#E85252",
@@ -34,6 +35,10 @@ spot_map(
 \item{outcome_col}{Outcome column name. Auto-detected when NULL.}
 
 \item{case_value}{Value representing a case. Auto-detected when NULL.}
+
+\item{all_cases}{If \code{TRUE}, skip outcome detection and treat every row
+as a case (no controls on the map). Useful for outbreak surveillance
+or case-only datasets that don't have a control group. Defaults to \code{FALSE}.}
 
 \item{count_cutoff}{District count threshold for zoom level (default 2).}
 

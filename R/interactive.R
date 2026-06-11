@@ -37,22 +37,38 @@ run_interactive <- function(output_path = "spotmap.html") {
 
   cat("\n"); .line("-")
   cat("Step 4 -- Which column tells us CASE vs CONTROL?\n")
+  cat("   (If your data only has cases and no control group, pick the\n")
+  cat("    first option to treat every row as a case.)\n")
   .line("-")
-  outcome_col <- .ask_choice("Your outcome column", cols,
-                              .guess(cols, c("outcome", "status", "case_control",
-                                             "class", "result")), previews)
+  no_outcome_label <- "(No outcome column - treat all rows as cases)"
+  cols_with_none <- c(no_outcome_label, cols)
+  outcome_choice <- .ask_choice("Your outcome column", cols_with_none,
+                                 1L + .guess(cols, c("outcome", "status",
+                                                     "case_control", "class",
+                                                     "result")),
+                                 c("All rows treated as cases",
+                                   previews))
 
-  # Step 3 -- pick case value
-  case_value <- .step_pick_case_value(df, outcome_col)
+  all_cases <- identical(outcome_choice, no_outcome_label)
 
-  # Step 4 -- pick output path (allow user to override the default)
+  if (all_cases) {
+    outcome_col <- NULL
+    case_value <- NULL
+    cat(sprintf("\nTreating all %d rows as cases (no controls).\n", nrow(df)))
+  } else {
+    outcome_col <- outcome_choice
+    case_value <- .step_pick_case_value(df, outcome_col)
+  }
+
+  # Step 6 -- pick output path (allow user to override the default)
   output_path <- .step_output_path(output_path)
 
-  # Step 5 -- build
+  # Step 7 -- build
   cat("\nBuilding the map...\n")
   tryCatch({
     spot_map(df, lat_col = lat_col, lon_col = lon_col,
              outcome_col = outcome_col, case_value = case_value,
+             all_cases = all_cases,
              output = output_path)
     .line()
     cat(sprintf("\nOpen this file in your browser:\n   %s\n\n",
