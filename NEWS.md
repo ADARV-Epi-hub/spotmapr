@@ -1,3 +1,24 @@
+# spotmapr 0.1.12
+
+## New features
+- **OpenStreetMap place-name labels** can now be toggled on/off from the
+  sidebar. The base map switched to the no-labels CARTO variant so labels
+  (state / district / city / town, rendered by CARTO from OpenStreetMap)
+  can be shown or hidden with a sliding switch (off by default).
+
+## UI
+- **New top toolbar** in the ADARV navy/blue theme replaces the floating
+  side panel: pill controls for Category (case/control filter + colours),
+  Map Type (dot density / spot pins), a Labels on/off switch, Recenter,
+  and a Download menu (PNG / Print-PDF).
+- A credit caption ("Interactive spot maps for India - created by ADARV")
+  appears at the bottom of the map (included in PNG/PDF exports).
+
+## Credits
+- Added the full ADARV team to the package authors (`DESCRIPTION`), the
+  README, and a new `AUTHORS.md`; copyright holder updated to ADARV.
+
+
 # spotmapr 0.1.11
 
 ## New features

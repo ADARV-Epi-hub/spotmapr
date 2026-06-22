@@ -156,7 +156,10 @@ spot_map <- function(data,
     width = "100%", height = "100%",
     options = leaflet::leafletOptions(zoomSnap = 0.1, zoomDelta = 0.1)
   ) |>
-    leaflet::addProviderTiles("CartoDB.Positron")
+    # No-labels base so OpenStreetMap place labels can be toggled on/off.
+    leaflet::addProviderTiles("CartoDB.PositronNoLabels") |>
+    # Toggleable place-name labels (rendered by CARTO from OpenStreetMap).
+    leaflet::addProviderTiles("CartoDB.PositronOnlyLabels", group = "Place Labels")
 
   # 8. Boundary layers (using addPolygons with sf objects directly)
   if (!is.null(india_sub) && nrow(india_sub) > 0) {
@@ -299,10 +302,12 @@ spot_map <- function(data,
     )
   }
 
-  # 11. Hide pin layers by default (dots mode is default)
+  # 11. Hide pin layers by default (dots mode is default).
+  #     Place labels also start hidden (toggled from the sidebar).
   m <- m |>
     leaflet::hideGroup("Spot Map - Cases") |>
-    leaflet::hideGroup("Spot Map - Controls")
+    leaflet::hideGroup("Spot Map - Controls") |>
+    leaflet::hideGroup("Place Labels")
 
   # 12. Sidebar HTML + JS
   sidebar <- build_sidebar_html(
@@ -340,7 +345,19 @@ spot_map <- function(data,
   # 13. Save or return
   if (!is.null(output)) {
     out_path <- normalizePath(output, mustWork = FALSE)
-    htmlwidgets::saveWidget(m, file = out_path, selfcontained = FALSE)
+    # Prefer a single self-contained HTML file -- much friendlier for
+    # non-coders who just want to email or share one file. This needs
+    # pandoc; if it isn't available, fall back to the multi-file form
+    # (an HTML file plus a "<name>_files" folder) and say so.
+    saved_selfcontained <- tryCatch({
+      htmlwidgets::saveWidget(m, file = out_path, selfcontained = TRUE)
+      TRUE
+    }, error = function(e) FALSE)
+    if (!saved_selfcontained) {
+      htmlwidgets::saveWidget(m, file = out_path, selfcontained = FALSE)
+      message("Note: saved as '", basename(output), "' plus a companion ",
+              "'_files' folder. Install pandoc for a single self-contained file.")
+    }
     message("Map saved to: ", output)
     invisible(m)
   } else {

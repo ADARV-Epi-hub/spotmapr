@@ -1,9 +1,16 @@
 Package: spotmapr
 Title: Interactive Epidemiological Spot Maps for India
-Version: 0.1.11
-Authors@R: person("Muniraj", "Mallesan",
-                  email = "adarv@nieicmr.org.in",
-                  role = c("aut", "cre"))
+Version: 0.1.12
+Authors@R: c(
+    person("Muniraj", "Mallesan", email = "adarv@nieicmr.org.in",
+           role = c("aut", "cre")),
+    person("Dr. Sharan", "Murali", role = "aut"),
+    person("Manikandan", "K", role = "ctb"),
+    person("Shanmuga", "Sundharam", role = "ctb"),
+    person("Yogita", "Chaudhary", role = "ctb"),
+    person("Barath", "U", role = "ctb"),
+    person("Balaji", "S", role = "ctb"),
+    person("Deepana", "R", role = "ctb"))
 Description: Build interactive spot maps for epidemiological case-control
     data in India. Supports automatic detection of latitude, longitude, and
     outcome columns, spatial joining with bundled state and district

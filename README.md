@@ -73,6 +73,7 @@ sidebar lets you:
 - Pick **cluster** / **case** / **control** colours
 - Resize pins with a slider
 - Show **Cases Only** or **Cases & Controls**
+- Turn **place name labels** (from OpenStreetMap) on or off
 - Download the map as **PNG** or print as **PDF**
 
 ## Custom boundaries
@@ -88,6 +89,21 @@ spot_map(
 )
 ```
 
+## Team
+
+spotmapr is developed by the **ADARV** team:
+
+| Name | Role |
+|---|---|
+| Muniraj Mallesan | Maintainer |
+| Dr. Sharan Murali | Team Lead |
+| Manikandan K | |
+| Shanmuga Sundharam | |
+| Yogita Chaudhary | |
+| Barath U | |
+| Balaji S | |
+| Deepana R | |
+
 ## License
 
-MIT © Tharun Mallesan
+MIT © ADARV
