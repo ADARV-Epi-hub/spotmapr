@@ -342,6 +342,18 @@ spot_map <- function(data,
     padding = 0
   )
 
+  return(.spot_map_finish(m, output))
+}
+
+
+#' @rdname spot_map
+#' @export
+spotmap <- function(...) spot_map(...)
+
+
+#' Internal: save the widget or return it
+#' @keywords internal
+.spot_map_finish <- function(m, output) {
   # 13. Save or return
   if (!is.null(output)) {
     out_path <- normalizePath(output, mustWork = FALSE)

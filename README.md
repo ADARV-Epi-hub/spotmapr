@@ -30,8 +30,8 @@ remotes::install_github("ADARV-Epi-hub/spotmapr")
 ```r
 library(spotmapr)
 
-# Option 1 — interactive wizard
-spot_map()
+# Option 1 — interactive wizard (spotmap() also works as an alias)
+spotmap()
 
 # Option 2 — direct call with auto-detection
 spot_map(

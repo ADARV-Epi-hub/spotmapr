@@ -1,3 +1,12 @@
+# spotmapr 0.1.13
+
+## New features
+- `spotmap()` is now available as an alias for `spot_map()`, so both
+  spellings work.
+- A friendly startup message is shown when the package is attached
+  (`library(spotmapr)`), pointing new users to `spotmap()`.
+
+
 # spotmapr 0.1.12
 
 ## New features

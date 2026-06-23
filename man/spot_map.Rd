@@ -2,6 +2,7 @@
 % Please edit documentation in R/spot_map.R
 \name{spot_map}
 \alias{spot_map}
+\alias{spotmap}
 \title{Build an interactive epidemiological spot map for India}
 \usage{
 spot_map(
@@ -20,8 +21,12 @@ spot_map(
   control_color = "#7676E7",
   output = NULL
 )
+
+spotmap(...)
 }
 \arguments{
+\item{...}{(For \code{spotmap()}) arguments passed on to \code{spot_map()}.}
+
 \item{data}{Path to a CSV/Excel/TSV file, or a data.frame.}
 
 \item{state_shp}{Optional custom state boundary file path.}
@@ -56,7 +61,8 @@ or case-only datasets that don't have a control group. Defaults to \code{FALSE}.
 A leaflet widget (invisibly if saved to file).
 }
 \description{
-Build an interactive epidemiological spot map for India
+Build an interactive epidemiological spot map for India.
+\code{spotmap()} is an alias for \code{spot_map()}.
 }
 \examples{
 \dontrun{
