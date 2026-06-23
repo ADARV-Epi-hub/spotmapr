@@ -1,3 +1,10 @@
+# spotmapr 0.1.14
+
+## Bug fixes
+- Moved the map legend to the bottom-left so it no longer covers the
+  zoom (+/-) buttons.
+
+
 # spotmapr 0.1.13
 
 ## New features

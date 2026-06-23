@@ -1,6 +1,6 @@
 Package: spotmapr
 Title: Interactive Epidemiological Spot Maps for India
-Version: 0.1.13
+Version: 0.1.14
 Authors@R: c(
     person("Muniraj", "Mallesan", email = "adarv@nieicmr.org.in",
            role = c("aut", "cre")),
